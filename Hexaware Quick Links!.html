@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hexaware Links Dashboard</title>
+<style>
+  :root{
+    --bg-dark: #02172b;
+    --panel: #072742;
+    --card: rgba(255,255,255,0.03);
+    --accent: #0a6bd8;
+    --muted: rgba(255,255,255,0.70);
+    --glass: rgba(255,255,255,0.02);
+    --white: #ffffff;
+    --radius: 12px;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg-dark), #041a2a);
+    color: var(--white);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  .layout{
+    max-width:1200px;
+    margin:28px auto;
+    padding:20px;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+  }
+
+  .brand-left{
+    display:flex;
+    gap:12px;
+    align-items:baseline;
+  }
+
+  .page-title{
+    font-size:24px;
+    margin:0;
+    color:var(--white);
+    letter-spacing:0.6px;
+    font-weight:700;
+  }
+
+  .page-sub{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+
+  .brand-right{
+    font-weight:900;
+    color:var(--white);
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    padding:16px 24px;
+    border-radius:12px;
+    letter-spacing:2px;
+    font-size:26px;
+    text-decoration:none;
+    display:inline-block;
+  }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+
+  .search-wrap{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex:1;
+    min-width:260px;
+  }
+
+  input[type="search"], input[type="text"], input[type="url"]{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.06);
+    color:var(--white);
+    padding:10px 12px;
+    border-radius:8px;
+    outline:none;
+    font-family:inherit;
+  }
+
+  .btn{
+    background:var(--accent);
+    color:#012134;
+    border:none;
+    padding:10px 14px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform 160ms ease, box-shadow 160ms ease;
+    font-family:inherit;
+  }
+
+  .btn.ghost{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  .btn:hover{ transform:translateY(-3px); box-shadow:0 6px 18px rgba(6,108,216,0.14); }
+  .btn.ghost:hover{ transform:translateY(-2px); }
+
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    padding:16px;
+    border-radius:var(--radius);
+    border: 1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+  }
+
+  .form-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:12px;
+  }
+
+  .add-inputs{ display:flex; gap:8px; align-items:center; flex:1; min-width:320px; }
+
+  .links-grid{
+    display:grid;
+    gap:18px;
+    grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+    margin-top:18px;
+  }
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+    border-radius:14px;
+    padding:26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border:1px solid rgba(255,255,255,0.03);
+    transition:transform 160ms ease, box-shadow 160ms ease;
+    min-height:150px;
+  }
+
+  .card:hover{ transform:translateY(-6px); box-shadow: 0 16px 50px rgba(2,105,210,0.12); }
+
+  .card-left{ display:flex; gap:18px; align-items:flex-start; min-width:0; flex:1; }
+
+  .avatar{ display:none; }
+
+  .meta{ min-width:0; }
+
+  .link-title{
+    font-size:22px;
+    font-weight:800;
+    color:var(--white);
+    text-decoration:none;
+    display:block;
+    line-height:1.15;
+    word-break:break-word;
+    margin-bottom:6px;
+  }
+
+  .link-url{ display:none; color:var(--muted); font-size:13px; margin-top:6px; }
+
+  .actions{ display:flex; gap:10px; align-items:center; }
+
+  .small{ font-size:13px; color:var(--muted); }
+
+  .empty{
+    padding:22px;
+    border-radius:12px;
+    background:var(--glass);
+    text-align:center;
+    color:var(--muted);
+  }
+
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(2,7,18,0.6); display:flex; align-items:center; justify-content:center; z-index:1200; opacity:0; pointer-events:none; transition:opacity 180ms ease; }
+
+  .modal-backdrop.show{ opacity:1; pointer-events:auto; }
+
+  .modal{
+    width:100%;
+    max-width:760px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:20px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 18px 60px rgba(2,7,18,0.8);
+  }
+
+  .modal h3{ margin:0 0 8px 0; font-size:18px; color:var(--white); }
+  .modal .row{ display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+  .modal input[type="text"], .modal input[type="url"]{ padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:var(--white); }
+
+  .toast{ position:fixed; right:18px; bottom:18px; background: rgba(0,0,0,0.7); color:var(--white); padding:10px 14px; border-radius:8px; z-index:1400; display:none; }
+
+  @media (max-width:900px){
+    .links-grid{ grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+    .brand-right{ font-size:22px; padding:12px 16px; }
+  }
+
+  @media (max-width:640px){
+    .links-grid{ grid-template-columns:1fr; gap:12px; }
+    .brand-right{ font-size:18px; padding:10px 12px; }
+    .card{ padding:18px; min-height:120px; }
+    .link-title{ font-size:18px; }
+  }
+</style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="brand-left">
+        <div>
+          <h1 class="page-title">Quick Links Dashboard</h1>
+          <div class="page-sub small">Private quick access — URLs are hidden by default</div>
+        </div>
+      </div>
+
+      <a class="brand-right" id="brandRight" href="https://hexaware.com" target="_blank" rel="noopener">HEXAWARE</a>
+    </header>
+
+    <div class="panel" role="region" aria-label="controls panel">
+      <div class="controls">
+        <div class="search-wrap" title="Search links by title">
+          <input id="search" type="search" placeholder="Search by title..." aria-label="Search links" />
+          <button id="clearSearch" class="btn ghost">Clear</button>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="restoreDefaults" class="btn ghost">Restore Defaults</button>
+          <button id="exportJson" class="btn ghost">Export</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="add-inputs">
+          <input id="newTitle" type="text" placeholder="Link title (e.g., Rehire Check)" />
+          <input id="newUrl" type="url" placeholder="https://example.com" />
+          <button id="addBtn" class="btn">Add Link</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="linksArea">
+      <div id="linksGrid" class="links-grid" aria-live="polite" style="margin-top:18px"></div>
+      <div id="empty" class="empty" style="display:none; margin-top:14px">No links yet. Use the Add Link form above to create links.</div>
+    </div>
+
+    <footer style="margin-top:18px; color:var(--muted); font-size:13px">
+      URLs are intentionally hidden in the list for privacy. Use the Edit action to view or modify the URL.
+    </footer>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Edit Link</h3>
+      <div class="row">
+        <label class="small">Title</label>
+        <input id="editTitle" type="text" />
+        <label class="small">URL (visible only here)</label>
+        <input id="editUrl" type="url" />
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button id="saveEdit" class="btn">Save</button>
+          <button id="cancelEdit" class="btn ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // Default links updated exactly as provided; titles open in a new tab via anchor target="_blank"
+  const DEFAULT_LINKS = [
+    { title: "Rehire Check", url: "https://app.powerbi.com/view?r=eyJrIjoiNTVjODc4NGItYTllNi00OTc5LWEyMzQtYTM0MTU3M2JmZjExIiwidCI6IjdjMGMzNmY1LWFmODMtNGMyNC04ODQ0LTk5NjJlMDE2MzcxOSIsImMiOjEwfQ%3D%3D" },
+    { title: "StationH", url: "https://station-h.hexaware.com/apps" },
+    { title: "TensaiGPT", url: "https://tensaigpt.hexaware.com/chat" },
+    { title: "Compliance Certificate", url: "https://forms.office.com/Pages/ResponsePage.aspx?id=9TYMfIOvJEyIRJli4BY3GSK18_oJhYRNvj0giZgVpWRURTRHNEQ0UFVNUTlaV1pHRlQyWE40RFZYOC4u" },
+    { title: "ORC FAQ", url: "https://app.powerbi.com/view?r=eyJrIjoiMTAzMmY2YzEtNGY3Yi00MWUwLWE3NzgtZmY1N2ZjMmZkYTNkIiwidCI6IjdjMGMzNmY1LWFmODMtNGMyNC04ODQ0LTk5NjJlMDE2MzcxOSIsImMiOjEwfQ%3D%3D" },
+    { title: "OCR DHR", url: "https://login-etqo-saasfaprod1.fa.ocs.oraclecloud.com/oam/server/obrareq.cgi?encquery%3D3%2Fs2F90Kw75DUkup4IMT%2BW8Q%2BMBaoF8Q1Eod0qWGPC%2BYGkXtDurQoDsKi1o8PmkCQQNs9yGqilgh52y1iUGoyXb1kkKdA05En%2BK8FVYQ5zpHrMrXTw%2BEsN89ECE4d92wkj%2FkFZlzVr7msMY43AcT4mtZqa5rNZVIx%2B73cj66rkUBjLLl6knfKIdJIBsGI9jxt8%2FHqyHemS%2F7gMoPoT%2BeMVx1Q1A0Q1FzRmFoutl7QHs%2BbKjUWoz%2By9atRbgGCRcTQQYFPyzNzwBQbAmyYQozr8MpV92S567XCJZW%2Fw4xThuWcV6FMG0iLfG0guJubF5A7rL6en0hbBgJRc66rk7k4KxxCCgLT0Vcr3%2BvSMJqTEOdDKtUu%2BryIACNKZU1EdoeRY%2BoVA%2F9qMppjOoR8JXgZL9wA0IlUsYGQ0c1daOWG8Vgz4Z%2FnMMFFKJAKogI4TNirL7PtsIsuj%2F%2BqFPYxGj8f89vescP7JM3M50f6QLBQjfCRD6MhQwer7YVQuJKvNG5H0Kcj7XxbHC8z2TVw4MmY9oFxPzyNt11rkIOnEGxsC4ynSVcXtRi7lt9c6W9y8fUwYP08HygPJNpDQmIjBehkgQXp7lMLoQ7JqgZE9VefBJudOO19hu6IOHuA4dfDh2DGS8gGjRD42fY56N82JvuCsp0lx5JA26dSJRs3pIBiDuFFXxJYGcvS0wUGccR2Auv1LJHLewsyea61LuWK0c27unpE%2FKb81aH33n%2F6%2Bg%2BJRvzaITrVGbnTTJih76klSsWY%2BeEul8PLa5l%2B7q5CjTsDnw02wxsSFoHgSc6yC7bkA32pMN1NfW1BQ6753%2FXrOSSUEXyh4HD5bvvqWEqQA3uExu%2BSsbeKpaR3AXdLvKrGiR%2B%2BZ3f%2BtUMjrNNA7Tm00iFzbmLfm6y%2FYEuHezY71xMJEsHcrnfbZ%2B%2BI3AB6SX3O33glRj6a5cvQe54QGAmv9rtWMZGKJyazJDVCv%2BCPr0dvRozgCBLLSJD83h4dhLuP2Q%2BWBi4skmtAxrDTbr4DiOlfnB3gyMfxpZQJXqZiijvfXxt3r2El11GxgV%2Bs2Yb4chtekclziFNQ9KDrZ4hyPEd22vN94TFIO0SngxbcMMQ%2Fkv2JzKGTsiHNieYmH%2FuWAw4wDoYMy4Dxt574TPZZWvajZM1f6OsGhg0uL41VlIVxdjf6LWZ6mtNWqalZYkhZxErL2WLq9D8HFDguWq46Whw8RIvApgBriwM79j51H9xFzMyy%2ByZmySvd8%2FrkZjdzNF9vcymNGuSz4x%2FUK7nf6%2BxImSNiPYobegp93%2F%2BOsoIbAaHem83%2BqfK5ZN7PI4AyZwnPgOFng0dKBAc7%2FFJNIybGAwVyzcBakFVocp7UgsJw8kIYigctvZ1ENw8v9hwGE%2FqB%2FlUO5jHeNptFr3%2BWLppR%2BMYVIthVTKgHz%2Fxm2sKh4Cz%2FKN76EbnfNs4Hmy49JG1sQIc%2BIk4VNIz56KasGmcOrHKqxP5SJGPEb9HNc8ZwpifTuqHv%2FsBWLFnwupu%2BJAjieZY2N6JVgYGuKjbCloGIayFnSs%2BNh7IB9m2l7zMx0jWtu01vh9TjMI%2BT2jUU9wKUoyUBiXAX54DlSr6ex8hq%2BFhaTxqJmswDTCIauxWHi%2FmDJCOJ4avPD1fNf5WCQNvKVQ2gQ9Jy%2BlPOboRKNnS%20agentid%3DOraFusionApp_11AG%20ver%3D1%20crmethod%3D2%26cksum%3D48863d6373198805320d01855fe78cbe100a562f&ECID-Context=1.006FdP%5E8kYz89xsawhQ_MG00B%5Eye0001tI%3BkXjE" }
+  ];
+
+  const STORAGE_KEY = "hexa_links_v2";
+
+  function loadLinks() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { console.error(e); }
+    return DEFAULT_LINKS.slice();
+  }
+
+  function saveLinks(list) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+    catch (e) { console.error(e); }
+  }
+
+  let links = loadLinks();
+
+  const linksGrid = document.getElementById('linksGrid');
+  const emptyEl = document.getElementById('empty');
+  const search = document.getElementById('search');
+  const clearSearch = document.getElementById('clearSearch');
+  const newTitle = document.getElementById('newTitle');
+  const newUrl = document.getElementById('newUrl');
+  const addBtn = document.getElementById('addBtn');
+  const restoreDefaults = document.getElementById('restoreDefaults');
+  const exportJson = document.getElementById('exportJson');
+
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const editTitle = document.getElementById('editTitle');
+  const editUrl = document.getElementById('editUrl');
+  const saveEdit = document.getElementById('saveEdit');
+  const cancelEdit = document.getElementById('cancelEdit');
+  const toast = document.getElementById('toast');
+
+  let editingIndex = -1;
+
+  function notify(msg, ms = 1600){
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(()=> toast.style.display = 'none', ms);
+  }
+
+  function render(filter = ''){
+    linksGrid.innerHTML = '';
+    const q = (filter || '').trim().toLowerCase();
+    const filtered = links.filter(item => !q || (item.title && item.title.toLowerCase().includes(q)));
+
+    if(filtered.length === 0){
+      emptyEl.style.display = 'block';
+    } else {
+      emptyEl.style.display = 'none';
+    }
+
+    filtered.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const left = document.createElement('div');
+      left.className = 'card-left';
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+
+      const titleLink = document.createElement('a');
+      titleLink.className = 'link-title';
+      titleLink.textContent = item.title || 'Untitled';
+      titleLink.href = item.url || '#';
+      titleLink.target = '_blank';
+      titleLink.rel = 'noopener';
+
+      const urlHidden = document.createElement('div');
+      urlHidden.className = 'link-url';
+      urlHidden.textContent = item.url || '';
+
+      meta.appendChild(titleLink);
+      meta.appendChild(urlHidden);
+
+      left.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'btn ghost';
+      copyBtn.textContent = 'Copy Link';
+      copyBtn.addEventListener('click', () => { copyURL(item.url); });
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn ghost';
+      editBtn.textContent = 'Edit Link';
+      editBtn.addEventListener('click', () => { openEditModal(idx); });
+
+      actions.appendChild(copyBtn);
+      actions.appendChild(editBtn);
+
+      card.appendChild(left);
+      card.appendChild(actions);
+
+      linksGrid.appendChild(card);
+    });
+  }
+
+  function copyURL(text){
+    if(!text) { notify('No URL to copy'); return; }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=> notify('Link copied to clipboard'));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); notify('Link copied to clipboard'); } catch(e){ alert('Copy failed'); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  function openEditModal(index){
+    editingIndex = index;
+    editTitle.value = links[index].title || '';
+    editUrl.value = links[index].url || '';
+    modalBackdrop.classList.add('show');
+    modalBackdrop.setAttribute('aria-hidden','false');
+    setTimeout(()=> editTitle.focus(), 120);
+  }
+
+  function closeEditModal(){
+    editingIndex = -1;
+    modalBackdrop.classList.remove('show');
+    modalBackdrop.setAttribute('aria-hidden','true');
+  }
+
+  saveEdit.addEventListener('click', () => {
+    const t = (editTitle.value || '').trim() || 'Untitled';
+    let u = (editUrl.value || '').trim();
+    if(!u) { alert('URL cannot be empty'); return; }
+    try {
+      new URL(u);
+    } catch(e){
+      if(confirm('URL looks invalid. Prefix with https:// ?')) { u = 'https://' + u.replace(/^\/+/, ''); } else { return; }
+    }
+    if(editingIndex >= 0){
+      links[editingIndex] = { title: t, url: u };
+      saveLinks(links);
+      closeEditModal();
+      render(search.value);
+      notify('Link updated');
+    }
+  });
+
+  cancelEdit.addEventListener('click', () => { closeEditModal(); });
+
+  modalBackdrop.addEventListener('click', (e) => { if(e.target === modalBackdrop) closeEditModal(); });
+
+  addBtn.addEventListener('click', () => {
+    const t = (newTitle.value || '').trim() || 'Untitled';
+    let u = (newUrl.value || '').trim();
+    if(!u) { alert('Please enter a URL'); return; }
+    try { new URL(u); } catch(e) {
+      if(confirm('URL missing scheme. Prefix with https:// ?')) { u = 'https://' + u.replace(/^\/+/, ''); } else { return; }
+    }
+    links.unshift({ title: t, url: u });
+    saveLinks(links);
+    newTitle.value = '';
+    newUrl.value = '';
+    render(search.value);
+    notify('Link added');
+  });
+
+  search.addEventListener('input', () => render(search.value));
+  clearSearch.addEventListener('click', () => { search.value = ''; render(); });
+
+  restoreDefaults.addEventListener('click', () => {
+    if(confirm('Restore default links? This will overwrite your saved set.')) {
+      links = DEFAULT_LINKS.slice();
+      saveLinks(links);
+      render();
+      notify('Defaults restored');
+    }
+  });
+
+  exportJson.addEventListener('click', () => {
+    const data = JSON.stringify(links, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hexa_links.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    notify('Export started');
+  });
+
+  function init(){
+    if(!localStorage.getItem(STORAGE_KEY)){
+      saveLinks(DEFAULT_LINKS.slice());
+    }
+    links = loadLinks();
+    render();
+  }
+
+  window.addEventListener('beforeunload', () => saveLinks(links));
+
+  init();
+</script>
+</body>
+</html>
